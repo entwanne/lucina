@@ -10,4 +10,7 @@ setup(
     author_email='antoine.rozo@gmail.com',
     packages=[],
     classifiers=['Development Status :: 1 - Planning'],
+    entry_points = {
+        'console_scripts': ['lucina=lucina.__main__'],
+    }
 )
