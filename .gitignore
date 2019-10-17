@@ -1,0 +1,7 @@
+*.py[co]
+*.egg*
+build
+dist
+*~
+.pytest_cache
+.env
