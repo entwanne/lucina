@@ -1,4 +1,5 @@
 import enum
+from dataclasses import dataclass
 
 
 def make_cell(cell_type, source, slide_type='-'):
@@ -35,8 +36,21 @@ def clean_cell(cell):
 
 
 class CellType(enum.IntEnum):
+    MARKDOWN = enum.auto()
+    CODE = enum.auto()
+
+
+class SlideType(enum.IntEnum):
+    CONTINUE = enum.auto()
     SLIDE = enum.auto()
     SUBSLIDE = enum.auto()
     FRAGMENT = enum.auto()
-    NORMAL = enum.auto()
     SKIP = enum.auto()
+    NOTES = enum.auto()
+
+
+@dataclass
+class Cell:
+    cell_type: CellType
+    slide_type: SlideType
+    source: list
