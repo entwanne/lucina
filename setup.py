@@ -11,6 +11,6 @@ setup(
     packages=[],
     classifiers=['Development Status :: 1 - Planning'],
     entry_points = {
-        'console_scripts': ['lucina=lucina.__main__'],
+        'console_scripts': ['lucina=lucina.__main__:main'],
     }
 )
