@@ -25,6 +25,7 @@ setup(
     extras_require={
         'dev': [
             'pytest',
+            'pytest-mock',
             'flake8',
             'isort',
         ]
