@@ -1,4 +1,7 @@
+from typing import Dict
+from typing import Iterable
 from typing import List
+from typing import Tuple
 
 from lucina.cell import Cell
 from lucina.cell import CellType
@@ -11,7 +14,7 @@ _SPLIT_CELL_TYPE = {Token.START_CODE: CellType.CODE}
 
 
 class SplitRules:
-    def __init__(self, split_rules):
+    def __init__(self, split_rules: Dict[SlideType, List[Token]]):
         self.rules = {}
         for slide_type, token_patterns in split_rules.items():
             for token_pattern in token_patterns:
@@ -21,14 +24,14 @@ class SplitRules:
         for rules in self.rules.values():
             rules[:] = sorted(rules, key=lambda r: len(r[0]), reverse=True)
 
-    def match(self, token):
+    def match(self, token: Token) -> Tuple[bool, SlideType]:
         for rule, slide_type in self.rules.get(token.type, ()):
             if all(token.params.get(k) == v for k, v in rule.items()):
                 return True, slide_type
         return False, None
 
 
-def clean_source(source: List[str]):
+def clean_source(source: List[str]) -> List[str]:
     lines = source[:]
 
     while lines and not lines[0].rstrip('\r\n'):
@@ -62,7 +65,10 @@ def _split_cells(tokens, split_rules):
     yield cell_type, lines
 
 
-def parse_cells(tokens, split_rules):
+def parse_cells(
+        tokens: Iterable[Token],
+        split_rules: Dict[SlideType, List[Token]],
+) -> Iterable[Cell]:
     slide_type = SlideType.SLIDE
     for cell_type, content in _split_cells(tokens, split_rules):
         if cell_type is None:
