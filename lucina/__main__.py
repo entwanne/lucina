@@ -20,13 +20,12 @@ parser.add_argument('--no-autolaunch', dest='autolaunch', action='store_false')
 
 title_split = {1: SlideType.SLIDE, 2: SlideType.SUBSLIDE}
 title_split_after = {}
-title_page = {}
 
 
 def run(args):
     with open_files(args.files, 'r') as files:
         tokens = tokenize_files(files)
-        cells = parse_cells(tokens, title_split, title_split_after, title_page)
+        cells = parse_cells(tokens, title_split, title_split_after)
         doc = format_doc(cells, args.autolaunch)
 
     if args.output:
