@@ -8,6 +8,7 @@ from lucina import format_doc
 from lucina import parse_cells
 from lucina import tokenize_files
 from lucina.cell import SlideType
+from lucina.tokenizer import Token
 from lucina.utils import open_files
 
 
@@ -18,14 +19,18 @@ parser.add_argument(
 parser.add_argument('-o', '--output', default=None)
 parser.add_argument('--no-autolaunch', dest='autolaunch', action='store_false')
 
-title_split = {1: SlideType.SLIDE, 2: SlideType.SUBSLIDE}
-title_split_after = {}
+split_rules = {
+    SlideType.SLIDE: [Token.TITLE(level=1)],
+    SlideType.SUBSLIDE: [Token.TITLE(level=2), Token.SPLIT()],
+    SlideType.CONTINUE: [Token.START_CODE(), Token.END_CODE()],
+    SlideType.SKIP: [Token.START_CODE(skip=True)],
+}
 
 
 def run(args):
     with open_files(args.files, 'r') as files:
         tokens = tokenize_files(files)
-        cells = parse_cells(tokens, title_split, title_split_after)
+        cells = parse_cells(tokens, split_rules)
         doc = format_doc(cells, args.autolaunch)
 
     if args.output:
