@@ -20,10 +20,10 @@ def clean_source(source: List[str]):
     return lines
 
 
-def split_cells(tokens, title_split, title_split_after, title_page):
+def _split_cells(tokens, title_split, title_split_after):
     cell_type, lines = CellType.MARKDOWN, []
     for token in tokens:
-        if token.type is Token.FILE:
+        if token.type in (Token.FILE, Token.AFTER_FILE):
             pass
         elif token.type is Token.TITLE:
             if token.level in title_split:
@@ -35,7 +35,7 @@ def split_cells(tokens, title_split, title_split_after, title_page):
         elif token.type is Token.AFTER_TITLE:
             if token.level in title_split_after:
                 yield cell_type, lines
-                yield 'separator', title_page[token.level]
+                yield 'separator', title_split_after[token.level]
                 cell_type, lines = CellType.MARKDOWN, []
         elif token.type is Token.SPLIT:
             yield cell_type, lines
@@ -54,10 +54,10 @@ def split_cells(tokens, title_split, title_split_after, title_page):
     yield cell_type, lines
 
 
-def parse_cells(tokens, title_split, title_split_after, title_page):
+def parse_cells(tokens, title_split, title_split_after):
     slide_type = SlideType.CONTINUE
-    for cell_type, content in split_cells(tokens, title_split,
-                                          title_split_after, title_page):
+    for cell_type, content in _split_cells(tokens, title_split,
+                                           title_split_after):
         if cell_type == 'separator':
             if content != SlideType.CONTINUE:  # Continuation
                 slide_type = content

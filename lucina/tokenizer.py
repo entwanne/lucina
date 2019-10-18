@@ -1,8 +1,30 @@
 import enum
 import re
+from dataclasses import dataclass
+from typing import Any
+from typing import Dict
 
 
+class Token(enum.Enum):
+    def __call__(self, *args, **kwargs):
+        return _Token(self, *args, **kwargs)
+
+    LINE = enum.auto()
+    FILE = enum.auto()
+    AFTER_FILE = enum.auto()
+    TITLE = enum.auto()
+    AFTER_TITLE = enum.auto()
+    SPLIT = enum.auto()
+    START_CODE = enum.auto()
+    END_CODE = enum.auto()
+
+
+@dataclass
 class _Token:
+    type: Token
+    line: str
+    params: Dict[str, Any]
+
     def __init__(self, _type, line=None, **kwargs):
         self.type = _type
         self.line = line
@@ -18,19 +40,6 @@ class _Token:
             args.append(f'{key}={value!r}')
 
         return f"{self.type}({', '.join(args)})"
-
-
-class Token(enum.Enum):
-    def __call__(self, *args, **kwargs):
-        return _Token(self, *args, **kwargs)
-
-    LINE = enum.auto()
-    FILE = enum.auto()
-    TITLE = enum.auto()
-    AFTER_TITLE = enum.auto()
-    SPLIT = enum.auto()
-    START_CODE = enum.auto()
-    END_CODE = enum.auto()
 
 
 def tokenize_file(file):
@@ -49,7 +58,7 @@ def tokenize_file(file):
         if match:
             level = len(match.group(1))
             yield Token.TITLE(line, level=level)
-            yield Token.AFTER_TITLE(line, level=level)
+            yield Token.AFTER_TITLE(level=level)
         elif line.startswith('---'):
             yield Token.SPLIT(line)
         elif line.startswith('```'):
@@ -63,5 +72,6 @@ def tokenize_file(file):
 
 def tokenize_files(files):
     for file in files:
-        yield from tokenize_file(file)
         yield Token.FILE()
+        yield from tokenize_file(file)
+        yield Token.AFTER_FILE()
