@@ -22,6 +22,13 @@ setup(
     author_email=about['__author_email__'],
     packages=find_packages(exclude=['tests']),
     install_requires=[],
+    extras_require={
+        'dev': [
+            'pytest',
+            'flake8',
+            'isort',
+        ]
+    },
     license=about['__license__'],
     entry_points={
         'console_scripts': ['lucina=lucina.__main__:main'],
