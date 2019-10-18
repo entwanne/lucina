@@ -12,18 +12,21 @@ from lucina.utils import open_files
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument('files', metavar='file', nargs='+', help='Files to compute')
+parser.add_argument(
+    'files', metavar='file', nargs='+', help='Files to compute',
+)
 parser.add_argument('-o', '--output', default=None)
 parser.add_argument('--no-autolaunch', dest='autolaunch', action='store_false')
 
 title_split = {1: SlideType.SLIDE, 2: SlideType.SUBSLIDE}
 title_split_after = {}
+title_page = {}
 
 
 def run(args):
     with open_files(args.files, 'r') as files:
         tokens = tokenize_files(files)
-        cells = parse_cells(tokens, title_split, title_split_after)
+        cells = parse_cells(tokens, title_split, title_split_after, title_page)
         doc = format_doc(cells, args.autolaunch)
 
     if args.output:
