@@ -1,38 +1,66 @@
-import re
+from typing import List
 
-from lucina.token import Token
+from lucina.cell import Cell
+from lucina.cell import CellType
+from lucina.cell import SlideType
+from lucina.tokenizer import Token
 
 
-def parse_file(filename):
-    code = False
+def clean_source(source: List[str]):
+    lines = source[:]
 
-    with open(filename) as f:
-        for line in f:
-            if code:
-                if line.startswith('```'):
-                    code = False
-                    yield Token.END_CODE(line)
-                else:
-                    yield Token.LINE(line)
-                continue
+    while lines and not lines[0].rstrip('\r\n'):
+        lines.pop(0)
+    while lines and not lines[-1].rstrip('\r\n'):
+        lines.pop()
 
-            match = re.match(r'(#+) ', line)
-            if match:
-                level = len(match.group(1))
-                yield Token.TITLE(line, level=level)
-                yield Token.AFTER_TITLE(line, level=level)
-            elif line.startswith('---'):
-                yield Token.SPLIT(line)
-            elif line.startswith('```'):
-                code = True
-                args = line[3:].split()
-                skip = 'skip' in args
-                yield Token.START_CODE(line, language=args[0], skip=skip)
+    if lines:
+        lines[-1] = lines[-1].rstrip('\r\n')
+
+    return lines
+
+
+def split_cells(tokens, title_split, title_split_after):
+    cell_type, lines = CellType.MARKDOWN, []
+    for token in tokens:
+        if token.type is Token.FILE:
+            pass
+        elif token.type is Token.TITLE:
+            if token.level in title_split:
+                yield cell_type, lines
+                yield 'separator', title_split[token.level]
+                cell_type, lines = CellType.MARKDOWN, [token.line]
             else:
-                yield Token.LINE(line)
+                lines.append(token.line)
+        elif token.type is Token.AFTER_TITLE:
+            if token.level in title_split_after:
+                yield cell_type, lines
+                yield 'separator', title_page[token.level]
+                cell_type, lines = CellType.MARKDOWN, []
+        elif token.type is Token.SPLIT:
+            yield cell_type, lines
+            yield 'separator', SlideType.SUBSLIDE
+            cell_type, lines = CellType.MARKDOWN, []
+        elif token.type is Token.START_CODE:
+            yield cell_type, lines
+            yield 'separator', SlideType.SKIP if token.skip else SlideType.CONTINUE
+            cell_type, lines = CellType.CODE, []
+        elif token.type is Token.END_CODE:
+            yield cell_type, lines
+            cell_type, lines = CellType.MARKDOWN, []
+        elif token.line is not None:
+            lines.append(token.line)
+    yield cell_type, lines
 
 
-def parse_files(filenames):
-    for filename in filenames:
-        yield from parse_file(filename)
-        yield Token.FILE()
+def parse_cells(tokens, title_split, title_split_after):
+    slide_type = SlideType.CONTINUE
+    for cell_type, content in split_cells(tokens, title_split, title_split_after):
+        if cell_type == 'separator':
+            if content != SlideType.CONTINUE: # Continuation
+                slide_type = content
+            continue
+        source = clean_source(content)
+        if source:
+            yield Cell(cell_type, slide_type, source)
+            slide_type = SlideType.CONTINUE

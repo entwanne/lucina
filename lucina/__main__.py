@@ -4,7 +4,11 @@ import argparse
 import json
 import sys
 
-from lucina.generate import generate_cells
+from lucina import format_doc
+from lucina import parse_cells
+from lucina import tokenize_files
+from lucina.cell import SlideType
+from lucina.utils import open_files
 
 
 parser = argparse.ArgumentParser()
@@ -12,41 +16,15 @@ parser.add_argument('files', metavar='file', nargs='+', help='Files to compute')
 parser.add_argument('-o', '--output', default=None)
 parser.add_argument('--no-autolaunch', dest='autolaunch', action='store_false')
 
-title_split = {1: 'slide', 2: 'subslide'}
+title_split = {1: SlideType.SLIDE, 2: SlideType.SUBSLIDE}
 title_split_after = {}
 
 
-def main():
-    args = parser.parse_args()
-
-    doc = {
-        'cells': generate_cells(args.files, title_split, title_split_after),
-        'metadata': {
-            'celltoolbar': 'Slideshow',
-            'kernelspec': {
-                'display_name': 'Python 3',
-                'language': 'python',
-                'name': 'python3'
-            },
-            'language_info': {
-                'codemirror_mode': {
-                    'name': 'ipython',
-                    'version': 3
-                },
-                'file_extension': '.py',
-                'mimetype': 'text/x-python',
-                'name': 'python',
-                'nbconvert_exporter': 'python',
-                'pygments_lexer': 'ipython3',
-                'version': '3.6.5'
-            },
-            "livereveal": {
-                "autolaunch": args.autolaunch,
-            }
-        },
-        'nbformat': 4,
-        'nbformat_minor': 2,
-    }
+def run(args):
+    with open_files(args.files, 'r') as files:
+        tokens = tokenize_files(files)
+        cells = parse_cells(tokens, title_split, title_split_after)
+        doc = format_doc(cells, args.autolaunch)
 
     if args.output:
         f = open(args.output, 'w')
@@ -55,6 +33,10 @@ def main():
 
     with f:
         json.dump(doc, f, indent=4)
+
+
+def main():
+    run(parser.parse_args())
 
 
 if __name__ == '__main__':

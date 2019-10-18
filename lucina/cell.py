@@ -1,56 +1,29 @@
 import enum
 from dataclasses import dataclass
+from dataclasses import field
+from typing import List
 
 
-def make_cell(cell_type, source, slide_type='-'):
-    cell = {
-        'cell_type': cell_type,
-        'metadata': {
-            'scrolled': True,
-            'slideshow': {
-                'slide_type': slide_type,
-            },
-        },
-        'source': source,
-    }
-
-    if cell_type == 'code':
-        cell['outputs'] = []
-        cell['execution_count'] = None
-
-    return cell
+class CellType(enum.Enum):
+    MARKDOWN = 'markdown'
+    CODE = 'code'
 
 
-def clean_cell(cell):
-    lines = cell['source']
-
-    while lines and not lines[0].rstrip('\r\n'):
-        lines.pop(0)
-    while lines and not lines[-1].rstrip('\r\n'):
-        lines.pop()
-
-    if lines:
-        lines[-1] = lines[-1].rstrip('\r\n')
-
-    return cell
-
-
-class CellType(enum.IntEnum):
-    MARKDOWN = enum.auto()
-    CODE = enum.auto()
-
-
-class SlideType(enum.IntEnum):
-    CONTINUE = enum.auto()
-    SLIDE = enum.auto()
-    SUBSLIDE = enum.auto()
-    FRAGMENT = enum.auto()
-    SKIP = enum.auto()
-    NOTES = enum.auto()
+class SlideType(enum.Enum):
+    CONTINUE = '-'
+    SLIDE = 'slide'
+    SUBSLIDE = 'subslide'
+    FRAGMENT = 'fragment'
+    SKIP = 'skip'
+    NOTES = 'notes'
 
 
 @dataclass
 class Cell:
-    cell_type: CellType
-    slide_type: SlideType
-    source: list
+    cell_type: CellType = CellType.MARKDOWN
+    slide_type: SlideType = SlideType.CONTINUE
+    source: List[str] = field(default_factory=list)
+
+    def __post_init__(self):
+        self.cell_type = CellType(self.cell_type)
+        self.slide_type = SlideType(self.slide_type)
