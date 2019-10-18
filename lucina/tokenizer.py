@@ -22,22 +22,26 @@ class Token(enum.Enum):
 @dataclass
 class _Token:
     type: Token
-    line: str
+    content: str
     params: Dict[str, Any]
 
-    def __init__(self, _type, line=None, **kwargs):
+    def __init__(self, _type, content=None, **kwargs):
         self.type = _type
-        self.line = line
-        self.params = kwargs
+        self.content = content
         for key, value in kwargs.items():
             setattr(self, key, value)
 
+        self.params = kwargs
+        if content is not None:
+            self.params['content'] = content
+
     def __repr__(self):
         args = []
-        if self.line is not None:
-            args.append(repr(self.line))
+        if self.content is not None:
+            args.append(repr(self.content))
         for key, value in self.params.items():
-            args.append(f'{key}={value!r}')
+            if key != 'content':
+                args.append(f'{key}={value!r}')
 
         return f"{self.type}({', '.join(args)})"
 

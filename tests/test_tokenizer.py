@@ -6,21 +6,21 @@ from lucina.tokenizer import tokenize_files
 def test_token():
     token = Token.SPLIT()
     assert token.type is Token.SPLIT
-    assert token.line is None
+    assert token.content is None
     assert token.params == {}
     assert repr(token) == "Token.SPLIT()"
 
     token = Token.LINE('foobar')
     assert token.type is Token.LINE
-    assert token.line == 'foobar'
-    assert token.params == {}
+    assert token.content == 'foobar'
+    assert token.params == {'content': 'foobar'}
     assert repr(token) == "Token.LINE('foobar')"
 
     token = Token.TITLE('# foobar', level=1)
     assert token.type is Token.TITLE
-    assert token.line == '# foobar'
+    assert token.content == '# foobar'
     assert token.level == 1
-    assert token.params == {'level': 1}
+    assert token.params == {'level': 1, 'content': '# foobar'}
     assert repr(token) == "Token.TITLE('# foobar', level=1)"
 
 

@@ -29,9 +29,9 @@ def _split_cells(tokens, title_split, title_split_after):
             if token.level in title_split:
                 yield cell_type, lines
                 yield 'separator', title_split[token.level]
-                cell_type, lines = CellType.MARKDOWN, [token.line]
+                cell_type, lines = CellType.MARKDOWN, [token.content]
             else:
-                lines.append(token.line)
+                lines.append(token.content)
         elif token.type is Token.AFTER_TITLE:
             if token.level in title_split_after:
                 yield cell_type, lines
@@ -49,8 +49,8 @@ def _split_cells(tokens, title_split, title_split_after):
         elif token.type is Token.END_CODE:
             yield cell_type, lines
             cell_type, lines = CellType.MARKDOWN, []
-        elif token.line is not None:
-            lines.append(token.line)
+        elif token.content is not None:
+            lines.append(token.content)
     yield cell_type, lines
 
 
