@@ -3,19 +3,22 @@ from dataclasses import dataclass
 from dataclasses import field
 from typing import List
 
+from lucina.utils import ordered_enum
+
 
 class CellType(enum.Enum):
     MARKDOWN = 'markdown'
     CODE = 'code'
 
 
+@ordered_enum
 class SlideType(enum.Enum):
-    CONTINUE = '-'
     SLIDE = 'slide'
     SUBSLIDE = 'subslide'
     FRAGMENT = 'fragment'
-    SKIP = 'skip'
+    CONTINUE = '-'
     NOTES = 'notes'
+    SKIP = 'skip'
 
 
 @dataclass

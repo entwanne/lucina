@@ -1,4 +1,7 @@
+from typing import Dict
+from typing import Iterable
 from typing import List
+from typing import Tuple
 
 from lucina.cell import Cell
 from lucina.cell import CellType
@@ -6,7 +9,29 @@ from lucina.cell import SlideType
 from lucina.tokenizer import Token
 
 
-def clean_source(source: List[str]):
+_KEEP_CONTENT_ON_SPLIT = {Token.TITLE}
+_SPLIT_CELL_TYPE = {Token.START_CODE: CellType.CODE}
+
+
+class SplitRules:
+    def __init__(self, split_rules: Dict[SlideType, List[Token]]):
+        self.rules = {}
+        for slide_type, token_patterns in split_rules.items():
+            for token_pattern in token_patterns:
+                rules = self.rules.setdefault(token_pattern.type, [])
+                rules.append((token_pattern.params, slide_type))
+
+        for rules in self.rules.values():
+            rules[:] = sorted(rules, key=lambda r: len(r[0]), reverse=True)
+
+    def match(self, token: Token) -> Tuple[bool, SlideType]:
+        for rule, slide_type in self.rules.get(token.type, ()):
+            if all(token.params.get(k) == v for k, v in rule.items()):
+                return True, slide_type
+        return False, None
+
+
+def clean_source(source: List[str]) -> List[str]:
     lines = source[:]
 
     while lines and not lines[0].rstrip('\r\n'):
@@ -20,49 +45,38 @@ def clean_source(source: List[str]):
     return lines
 
 
-def _split_cells(tokens, title_split, title_split_after):
+def _split_cells(tokens, split_rules):
+    split_rules = SplitRules(split_rules)
     cell_type, lines = CellType.MARKDOWN, []
     for token in tokens:
-        if token.type in (Token.FILE, Token.AFTER_FILE):
-            pass
-        elif token.type is Token.TITLE:
-            if token.level in title_split:
-                yield cell_type, lines
-                yield 'separator', title_split[token.level]
-                cell_type, lines = CellType.MARKDOWN, [token.line]
-            else:
-                lines.append(token.line)
-        elif token.type is Token.AFTER_TITLE:
-            if token.level in title_split_after:
-                yield cell_type, lines
-                yield 'separator', title_split_after[token.level]
-                cell_type, lines = CellType.MARKDOWN, []
-        elif token.type is Token.SPLIT:
+        split, slide_type = split_rules.match(token)
+
+        if split:
             yield cell_type, lines
-            yield 'separator', SlideType.SUBSLIDE
-            cell_type, lines = CellType.MARKDOWN, []
-        elif token.type is Token.START_CODE:
-            yield cell_type, lines
-            sep = SlideType.SKIP if token.skip else SlideType.CONTINUE
-            yield 'separator', sep
-            cell_type, lines = CellType.CODE, []
-        elif token.type is Token.END_CODE:
-            yield cell_type, lines
-            cell_type, lines = CellType.MARKDOWN, []
-        elif token.line is not None:
-            lines.append(token.line)
+            yield None, slide_type
+            cell_type = _SPLIT_CELL_TYPE.get(token.type, CellType.MARKDOWN)
+            lines = []
+            if token.type not in _KEEP_CONTENT_ON_SPLIT:
+                continue
+
+        if token.content is not None:
+            lines.append(token.content)
+
     yield cell_type, lines
 
 
-def parse_cells(tokens, title_split, title_split_after):
-    slide_type = SlideType.CONTINUE
-    for cell_type, content in _split_cells(tokens, title_split,
-                                           title_split_after):
-        if cell_type == 'separator':
-            if content != SlideType.CONTINUE:  # Continuation
+def parse_cells(
+        tokens: Iterable[Token],
+        split_rules: Dict[SlideType, List[Token]],
+) -> Iterable[Cell]:
+    slide_type = SlideType.SLIDE
+    for cell_type, content in _split_cells(tokens, split_rules):
+        if cell_type is None:
+            if slide_type is None or content.rank < slide_type.rank:
                 slide_type = content
             continue
+
         source = clean_source(content)
         if source:
-            yield Cell(cell_type, slide_type, source)
-            slide_type = SlideType.CONTINUE
+            yield Cell(cell_type, slide_type or SlideType.CONTINUE, source)
+            slide_type = None

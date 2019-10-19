@@ -1,8 +1,10 @@
+from typing import Iterable
+
 from lucina.cell import Cell
 from lucina.cell import CellType
 
 
-def format_cell(cell: Cell):
+def format_cell(cell: Cell) -> dict:
     doc = {
         'cell_type': cell.cell_type.value,
         'metadata': {
@@ -21,12 +23,12 @@ def format_cell(cell: Cell):
     return doc
 
 
-def format_cells(cells):
+def format_cells(cells: Iterable[Cell]) -> Iterable[dict]:
     for cell in cells:
         yield format_cell(cell)
 
 
-def format_doc(cells, autolaunch=True):
+def format_doc(cells: Iterable[Cell], autolaunch: bool = True) -> dict:
     return {
         'cells': list(format_cells(cells)),
         'metadata': {

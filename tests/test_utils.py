@@ -1,4 +1,7 @@
+import enum
+
 from lucina.utils import open_files
+from lucina.utils import ordered_enum
 
 
 def test_open_files(mocker):
@@ -21,3 +24,17 @@ def test_open_files(mocker):
         assert files[0].filename == 'foo'
         assert files[0].args == ('r',)
         assert files[0].kwargs == {'encoding': 'utf-8'}
+
+
+def test_ordered_enum():
+    @ordered_enum
+    class Enum(enum.Enum):
+        A = 'a'
+        B = 'b'
+        C = 'c'
+
+    assert Enum.A.rank == 0
+    assert Enum.B.rank == 1
+    assert Enum.C.rank == 2
+
+    assert Enum('b').rank == 1

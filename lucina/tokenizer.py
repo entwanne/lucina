@@ -3,6 +3,9 @@ import re
 from dataclasses import dataclass
 from typing import Any
 from typing import Dict
+from typing import Iterable
+from typing import List
+from typing import TextIO
 
 
 class Token(enum.Enum):
@@ -22,27 +25,31 @@ class Token(enum.Enum):
 @dataclass
 class _Token:
     type: Token
-    line: str
+    content: str
     params: Dict[str, Any]
 
-    def __init__(self, _type, line=None, **kwargs):
+    def __init__(self, _type: Token, content: str = None, **kwargs):
         self.type = _type
-        self.line = line
-        self.params = kwargs
+        self.content = content
         for key, value in kwargs.items():
             setattr(self, key, value)
 
-    def __repr__(self):
+        self.params = kwargs
+        if content is not None:
+            self.params['content'] = content
+
+    def __repr__(self) -> str:
         args = []
-        if self.line is not None:
-            args.append(repr(self.line))
+        if self.content is not None:
+            args.append(repr(self.content))
         for key, value in self.params.items():
-            args.append(f'{key}={value!r}')
+            if key != 'content':
+                args.append(f'{key}={value!r}')
 
         return f"{self.type}({', '.join(args)})"
 
 
-def tokenize_file(file):
+def tokenize_file(file: TextIO) -> Iterable[Token]:
     code = False
 
     for line in file:
@@ -70,7 +77,7 @@ def tokenize_file(file):
             yield Token.LINE(line)
 
 
-def tokenize_files(files):
+def tokenize_files(files: List[TextIO]) -> Iterable[Token]:
     for file in files:
         yield Token.FILE()
         yield from tokenize_file(file)
