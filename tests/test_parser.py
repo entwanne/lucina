@@ -272,3 +272,59 @@ def test_parse_cells_combine_split():
         Cell('code', 'skip', ['import itertools']),
         Cell('markdown', '-', ['Hello world.']),
     ]
+
+
+def test_parse_cells_slide_hierarchy():
+    tokens = [
+        Token.TITLE('# 111\n', level=1),
+        Token.AFTER_TITLE(level=1),
+        Token.SPLIT('---\n'),
+        Token.LINE('foo\n'),
+        Token.SPLIT('---\n'),
+        Token.LINE('bar\n'),
+        Token.TITLE('## secret\n', level=2),
+        Token.AFTER_TITLE(level=2),
+        Token.LINE('baz\n'),
+        Token.TITLE('## secret\n', level=2),
+        Token.AFTER_TITLE(level=2),
+        Token.START_CODE(language='python'),
+        Token.LINE('x = 0\n'),
+        Token.END_CODE(),
+    ]
+
+    split_rules = {
+        SlideType.SLIDE: [Token.TITLE(level=1)],
+        SlideType.SUBSLIDE: [Token.AFTER_TITLE(level=1)],
+        SlideType.FRAGMENT: [Token.SPLIT()],
+        SlideType.CONTINUE: [
+            Token.TITLE(level=2),
+            Token.START_CODE(),
+            Token.END_CODE(),
+        ],
+        SlideType.SKIP: [Token.AFTER_TITLE(level=2)],
+    }
+    cells = list(parse_cells(tokens, split_rules))
+    assert cells == [
+        Cell('markdown', 'slide', ['# 111']),
+        Cell('markdown', 'subslide', ['foo']),  # Ignore Token.SPLIT
+        Cell('markdown', 'fragment', ['bar']),
+        Cell('markdown', '-', ['## secret']),
+        Cell('markdown', 'skip', ['baz']),
+        Cell('markdown', '-', ['## secret']),  # Go back to normal side
+        Cell('code', '-', ['x = 0']),  # START_CODE resets slide type
+    ]
+
+    split_rules = {
+        SlideType.SLIDE: [Token.TITLE(level=1)],
+        SlideType.FRAGMENT: [Token.SPLIT()],
+        SlideType.CONTINUE: [Token.START_CODE(), Token.END_CODE()],
+        SlideType.SKIP: [Token.AFTER_TITLE(level=2)],
+    }
+    cells = list(parse_cells(tokens, split_rules))
+    assert cells == [
+        Cell('markdown', 'slide', ['# 111']),
+        Cell('markdown', 'fragment', ['foo']),
+        Cell('markdown', 'fragment', ['bar\n', '## secret']),
+        Cell('markdown', 'skip', ['baz\n', '## secret']),
+        Cell('code', '-', ['x = 0']),
+    ]

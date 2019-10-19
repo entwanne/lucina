@@ -72,10 +72,11 @@ def parse_cells(
     slide_type = SlideType.SLIDE
     for cell_type, content in _split_cells(tokens, split_rules):
         if cell_type is None:
-            if content != SlideType.CONTINUE:  # Continuation
+            if slide_type is None or content.rank < slide_type.rank:
                 slide_type = content
             continue
+
         source = clean_source(content)
         if source:
-            yield Cell(cell_type, slide_type, source)
-            slide_type = SlideType.CONTINUE
+            yield Cell(cell_type, slide_type or SlideType.CONTINUE, source)
+            slide_type = None
