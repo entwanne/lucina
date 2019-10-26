@@ -21,8 +21,9 @@ parser.add_argument('--no-autolaunch', dest='autolaunch', action='store_false')
 
 split_rules = {
     SlideType.SLIDE: [Token.TITLE(level=1)],
-    SlideType.SUBSLIDE: [Token.TITLE(level=2), Token.SPLIT()],
+    SlideType.SUBSLIDE: [Token.TITLE(level=2)],
     SlideType.CONTINUE: [Token.START_CODE(), Token.END_CODE()],
+    SlideType.FRAGMENT: [Token.SPLIT()],
     SlideType.SKIP: [Token.START_CODE(skip=True)],
 }
 
