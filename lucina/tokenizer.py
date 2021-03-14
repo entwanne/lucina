@@ -1,6 +1,7 @@
 import enum
 import re
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any
 from typing import Dict
 from typing import Iterable
@@ -53,6 +54,13 @@ def tokenize_file(file: TextIO) -> Iterable[Token]:
     code = False
 
     for line in file:
+        if line.startswith('#include '):
+            filename = line[9:].strip()
+            filepath = Path(file.name).parent / filename
+            with filepath.open('r') as subfile:
+                yield from tokenize_file(subfile)
+            continue
+
         if code:
             if line.startswith('```'):
                 code = False
