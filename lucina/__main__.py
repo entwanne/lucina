@@ -4,12 +4,13 @@ import argparse
 import json
 import sys
 
+from minimd.tokenizer import Token
+from minimd.tokenizer import tokenize_files
+from minimd.utils import open_files
+
 from lucina import format_doc
 from lucina import parse_cells
-from lucina import tokenize_files
 from lucina.cell import SlideType
-from lucina.tokenizer import Token
-from lucina.utils import open_files
 
 
 parser = argparse.ArgumentParser()

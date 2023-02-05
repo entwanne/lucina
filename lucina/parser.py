@@ -3,10 +3,11 @@ from typing import Iterable
 from typing import List
 from typing import Tuple
 
+from minimd.tokenizer import Token
+
 from lucina.cell import Cell
 from lucina.cell import CellType
 from lucina.cell import SlideType
-from lucina.tokenizer import Token
 
 
 _KEEP_CONTENT_ON_SPLIT = {Token.TITLE}

@@ -33,7 +33,7 @@ jobs:
       - run:
           command: |
             . ~/.venv/bin/activate
-            isort -c --diff
+            isort -c --diff .
 
   tests:
     working_directory: ~/lucina
