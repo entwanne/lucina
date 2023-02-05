@@ -4,7 +4,8 @@ import argparse
 import json
 import sys
 
-from minimd.tokenizer import Token, tokenize_files
+from minimd.tokenizer import Token
+from minimd.tokenizer import tokenize_files
 from minimd.utils import open_files
 
 from lucina import format_doc
