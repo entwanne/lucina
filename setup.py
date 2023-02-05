@@ -21,7 +21,9 @@ setup(
     author=about['__author__'],
     author_email=about['__author_email__'],
     packages=find_packages(exclude=['tests']),
-    install_requires=[],
+    install_requires=[
+        'minimd @ git+ssh://git@github.com/entwanne/minimd.git#egg=minimd',
+    ],
     extras_require={
         'dev': [
             'pytest',
