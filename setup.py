@@ -17,12 +17,13 @@ setup(
     version=about['__version__'],
     description='From markdown to Jupyter notebook',
     long_description=readme(),
+    long_description_content_type='text/markdown',
     url=about['__url__'],
     author=about['__author__'],
     author_email=about['__author_email__'],
     packages=find_packages(exclude=['tests']),
     install_requires=[
-        'minimd @ git+ssh://git@github.com/entwanne/minimd.git#egg=minimd',
+        'minimd==1.*',
     ],
     extras_require={
         'dev': [
@@ -37,6 +38,8 @@ setup(
         'console_scripts': ['lucina=lucina.__main__:main'],
     },
     classifiers=[
-        'Development Status :: 1 - Planning',
+        'Development Status :: 5 - Production/Stable',
+        'Programming Language :: Python :: 3',
+        'License :: OSI Approved :: MIT License',
     ],
 )
