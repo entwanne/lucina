@@ -1,9 +1,10 @@
+from minimd.tokenizer import Token
+
 from lucina.cell import Cell
 from lucina.cell import SlideType
 from lucina.parser import SplitRules
 from lucina.parser import clean_source
 from lucina.parser import parse_cells
-from lucina.tokenizer import Token
 
 
 TOKENS = [
