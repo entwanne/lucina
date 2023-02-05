@@ -21,7 +21,7 @@ lucina -o docs/output.ipynb docs/input.md
 
 It outputs file [output.ipynb](docs/output.ipynb) that looks like:
 
-![Screenshot](https://github.com/entwanne/lucina/tree/master/docs/screen.png)
+![Screenshot](https://raw.githubusercontent.com/entwanne/lucina/master/docs/screen.png)
 
 ## Development
 
